@@ -1,319 +1,581 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 
-const projects = [
+type ThemeChoice = "light" | "system" | "dark";
+
+const featured = [
   {
-    number: "01",
-    status: "CURRENT PROJECT",
+    index: "01",
     title: "Velo",
-    kicker: "NFC products and the software around them.",
-    description:
-      "I’m building the product layer behind NFC cards, stands and fobs: tap routing, shareable profiles, customer tools, analytics and the boring operational pieces that make the whole thing dependable.",
-    note: "A real product means thinking past the landing page — identity, privacy, provisioning, failure states and what happens after the thousandth tap.",
-    tags: ["Next.js", "NFC", "Product systems", "Analytics"],
+    year: "2026",
+    label: "NFC product platform",
+    copy: "A product platform for NFC cards, stands and fobs. I’m building the customer profiles, tap-routing infrastructure, management tools and operational systems behind it.",
+    tags: ["Next.js", "NFC", "Supabase", "Product systems"],
     kind: "velo",
   },
   {
-    number: "02",
-    status: "WORK IN PROGRESS",
+    index: "02",
     title: "Cramwise",
-    kicker: "A calmer way to plan around university.",
-    description:
-      "Cramwise turns deadlines, routines and available time into a realistic week. The interesting bit isn’t making another calendar — it’s deciding what matters next, showing why, and recovering when Tuesday goes sideways.",
-    note: "The scheduling engine is deterministic on purpose. If a planner rearranges your life, it should be able to explain itself.",
-    tags: ["Scheduling", "Product design", "Supabase", "TypeScript"],
+    year: "2026",
+    label: "Study planner",
+    copy: "A planning system that turns deadlines, workload and available time into a realistic study schedule, then recalculates it when plans change.",
+    tags: ["TypeScript", "Scheduling", "Product design", "Supabase"],
     kind: "cramwise",
   },
 ] as const;
 
-const smallBuilds = [
+const archive = [
   {
-    title: "NFC hacker card",
+    index: "03",
+    title: "Fira",
     year: "2024",
-    text: "A PCB business card designed in EasyEDA, with NFC built into the object rather than pasted on as an afterthought.",
-    href: "https://github.com/Aaryan-N/Aaryan_Hacker_Card",
-    image:
-      "https://github.com/user-attachments/assets/fea3c193-7afe-44d0-b681-8ba417ae409f",
+    type: "Discord / backend",
+    copy: "A distributed Discord bot using clustering, sharding and separate MongoDB stores for economy, support, user and configuration data.",
+    tags: ["JavaScript", "MongoDB", "Discord.js"],
+    href: "https://github.com/Aaryan-N/Fira",
+    image: null,
   },
   {
+    index: "04",
+    title: "NFC hacker card",
+    year: "2024",
+    type: "PCB",
+    copy: "A two-layer PCB business card with NFC integrated directly into the board.",
+    tags: ["EasyEDA", "NFC", "PCB"],
+    href: "https://github.com/Aaryan-N/Aaryan_Hacker_Card",
+    image: "https://github.com/user-attachments/assets/fea3c193-7afe-44d0-b681-8ba417ae409f",
+  },
+  {
+    index: "05",
     title: "Four-port USB hub",
     year: "2024",
-    text: "A small hardware detour: schematic, board layout and a reminder that traces are less forgiving than TypeScript.",
+    type: "Hardware",
+    copy: "A compact four-port USB hub taken from schematic design through PCB layout.",
+    tags: ["PCB", "USB", "EasyEDA"],
     href: "https://github.com/Aaryan-N/UsbHub",
-    image:
-      "https://github.com/user-attachments/assets/fe2b8472-b026-4a9e-8165-447ca8ffd0fa",
+    image: "https://github.com/user-attachments/assets/fe2b8472-b026-4a9e-8165-447ca8ffd0fa",
+  },
+  {
+    index: "06",
+    title: "Zoom clone",
+    year: "2024",
+    type: "Web",
+    copy: "A functional video-meeting interface built while learning application architecture in Next.js.",
+    tags: ["Next.js", "React", "Tailwind"],
+    href: "https://github.com/Aaryan-N/Zoom_Clone",
+    image: null,
+  },
+  {
+    index: "07",
+    title: "Spotify clone",
+    year: "2024",
+    type: "Web",
+    copy: "A responsive music interface with album, track and library views.",
+    tags: ["React", "JavaScript", "UI"],
+    href: "https://github.com/Aaryan-N/spotify-clone",
+    image: null,
   },
 ] as const;
 
-function ProjectVisual({ kind }: { kind: (typeof projects)[number]["kind"] }) {
-  if (kind === "velo") {
-    return (
-      <div className="project-visual velo-visual" aria-label="Velo product interface concept">
-        <div className="visual-topline">
-          <span>VELO / CUSTOMER 0042</span>
-          <span className="live-dot">LIVE</span>
-        </div>
-        <div className="phone-shell">
-          <div className="phone-speaker" />
-          <div className="profile-mark">AN</div>
-          <strong>Aaryan Narayan</strong>
-          <span>Builder · Australia</span>
-          <div className="profile-link">Portfolio <b>↗</b></div>
-          <div className="profile-link">Current project <b>↗</b></div>
-        </div>
-        <div className="tap-card">
-          <span>TAPS / 7 DAYS</span>
-          <strong>1,284</strong>
-          <div className="tap-bars" aria-hidden="true">
-            {[42, 66, 51, 86, 74, 93, 79].map((height, index) => (
-              <i key={index} style={{ height: `${height}%` }} />
-            ))}
-          </div>
-        </div>
-        <div className="nfc-orbit" aria-hidden="true">
-          <i />
-          <i />
-          <i />
-        </div>
-      </div>
-    );
-  }
+const aiWork = [
+  {
+    status: "CURRENT PRACTICE",
+    title: "Agent orchestration",
+    copy: "I design multi-agent workflows that divide larger engineering tasks into focused streams for research, implementation, review and verification. Each agent works within a defined scope, with structured handoffs before the work is integrated.",
+    detail: "Task decomposition · parallel execution · context handoffs · validation",
+    tags: ["Multi-agent systems", "Orchestration", "Planning", "Review"],
+  },
+  {
+    status: "DEVELOPMENT WORKFLOW",
+    title: "AI across the toolchain",
+    copy: "I work across multiple AI-enabled IDEs and coding agents, moving between planning, implementation, debugging and code review depending on the task. The repository, tests and production behaviour remain the source of truth—not the model output.",
+    detail: "AI IDEs · coding agents · repository context · test-driven verification",
+    tags: ["AI-assisted development", "Coding agents", "Tooling", "Verification"],
+  },
+  {
+    status: "PRODUCT EXPERIMENTATION",
+    title: "Structured extraction",
+    copy: "In Cramwise, I’ve explored using models to turn inconsistent academic information into structured records. Low-confidence output is reviewed before it is saved, while scheduling and risk calculations remain deterministic.",
+    detail: "Extraction · confidence states · review-before-save · deterministic planning",
+    tags: ["Product AI", "Structured data", "Human review", "Cramwise"],
+  },
+] as const;
 
+function setTilt(event: ReactPointerEvent<HTMLElement>, strength = 10) {
+  if (window.matchMedia("(pointer: coarse), (prefers-reduced-motion: reduce)").matches) return;
+  const rect = event.currentTarget.getBoundingClientRect();
+  const x = (event.clientX - rect.left) / rect.width;
+  const y = (event.clientY - rect.top) / rect.height;
+  event.currentTarget.style.setProperty("--rx", `${(0.5 - y) * strength}deg`);
+  event.currentTarget.style.setProperty("--ry", `${(x - 0.5) * strength}deg`);
+  event.currentTarget.style.setProperty("--sx", `${x * 100}%`);
+  event.currentTarget.style.setProperty("--sy", `${y * 100}%`);
+}
+
+function resetTilt(event: ReactPointerEvent<HTMLElement>) {
+  event.currentTarget.style.setProperty("--rx", "0deg");
+  event.currentTarget.style.setProperty("--ry", "0deg");
+  event.currentTarget.style.setProperty("--sx", "50%");
+  event.currentTarget.style.setProperty("--sy", "50%");
+}
+
+function HeroMachine() {
   return (
-    <div className="project-visual cramwise-visual" aria-label="Cramwise planning interface concept">
-      <div className="visual-topline">
-        <span>WED / 29 JUL</span>
-        <span>08:42</span>
+    <div className="machine-wrap" aria-hidden="true">
+      <div className="machine">
+        <div className="orbit orbit-one"><i /><i /><i /></div>
+        <div className="orbit orbit-two"><i /><i /></div>
+
+        <div className="core-cube">
+          <div className="cube-face cube-front"><b>A/N</b><span>MEL · 2026</span></div>
+          <div className="cube-face cube-back"><span>ROBOTICS</span></div>
+          <div className="cube-face cube-right"><span>AI / AGENTS</span></div>
+          <div className="cube-face cube-left"><span>NFC / PCB</span></div>
+          <div className="cube-face cube-top"><span>PRODUCT</span></div>
+          <div className="cube-face cube-bottom" />
+        </div>
+
+        <div className="machine-card machine-code">
+          <span>AGENT / ORCHESTRATION</span>
+          <div><i /><i /><i /><i /></div>
+          <b>PLAN / BUILD / VERIFY</b>
+        </div>
+
+        <div className="machine-card machine-pcb">
+          <span>NFC / REV.02</span>
+          <div className="pcb-traces"><i /><i /><i /><i /></div>
+          <b>13.56 MHz</b>
+        </div>
+
+        <div className="machine-card machine-status">
+          <span>CURRENT</span>
+          <b>VELO</b>
+          <small>CRAMWISE</small>
+        </div>
+
+        <div className="neural-map">
+          <i /><i /><i /><i /><i /><i /><i /><i />
+          <span /><span /><span /><span /><span />
+        </div>
+
+        <div className="data-beam beam-one" />
+        <div className="data-beam beam-two" />
+
+        <div className="machine-shard shard-a">01</div>
+        <div className="machine-shard shard-b">TOOLS</div>
+        <div className="machine-shard shard-c">MEL</div>
       </div>
-      <div className="next-task">
-        <span>DO THIS NEXT</span>
-        <strong>Finish systems lab</strong>
-        <p>Due tomorrow · 75 min left</p>
-        <button type="button">Start focus →</button>
+      <div className="scene-floor" />
+    </div>
+  );
+}
+
+function ProjectStage({ kind }: { kind: (typeof featured)[number]["kind"] }) {
+  const isVelo = kind === "velo";
+  return (
+    <div
+      className={`project-stage ${kind}-stage`}
+      onPointerMove={(event) => setTilt(event, 8)}
+      onPointerLeave={resetTilt}
+      aria-label={`${isVelo ? "Velo" : "Cramwise"} interface model`}
+    >
+      <div className="stage-shine" />
+      <div className="stage-grid" />
+      <div className="stage-ring ring-a" />
+      <div className="stage-ring ring-b" />
+
+      <div className="stage-panel panel-main">
+        <div className="panel-bar">
+          <span>{isVelo ? "VELO / PROFILE" : "CRAMWISE / TODAY"}</span>
+          <i />
+        </div>
+        {isVelo ? (
+          <div className="velo-profile">
+            <div className="profile-orb">AN</div>
+            <b>Aaryan Narayan</b>
+            <span>Melbourne</span>
+            <div>Portfolio <em>↗</em></div>
+            <div>Current work <em>↗</em></div>
+          </div>
+        ) : (
+          <div className="cram-task">
+            <span>UP NEXT</span>
+            <b>Systems lab</b>
+            <small>75 min · due tomorrow</small>
+            <div className="task-meter"><i /></div>
+            <button type="button" tabIndex={-1}>Start</button>
+          </div>
+        )}
       </div>
-      <div className="week-strip" aria-hidden="true">
-        <span>M</span>
-        <span>T</span>
-        <span className="today">W</span>
-        <span>T</span>
-        <span>F</span>
+
+      <div className="stage-panel panel-data">
+        <span>{isVelo ? "TAPS / WEEK" : "WEEK / LOAD"}</span>
+        <b>{isVelo ? "1,284" : "68%"}</b>
+        <div className="mini-chart">
+          {[34, 58, 44, 78, 61, 92, 72].map((value) => (
+            <i key={value} style={{ "--bar": `${value}%` } as CSSProperties} />
+          ))}
+        </div>
       </div>
-      <div className="plan-block block-one">09:00 · Systems lab</div>
-      <div className="plan-block block-two">13:30 · Reading</div>
-      <div className="risk-note">
-        <span>PLAN CHANGED?</span>
-        <b>Rebuild the week, keep the work.</b>
+
+      <div className="stage-panel panel-log">
+        <span>LIVE LOG</span>
+        <p>{isVelo ? "tap → resolve → profile" : "deadline → plan → focus"}</p>
+        <p>{isVelo ? "route /mel/0042" : "rebuild /week/29"}</p>
       </div>
     </div>
   );
 }
 
 export default function Home() {
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const [melbourneTime, setMelbourneTime] = useState("--:-- --");
   const [activeSection, setActiveSection] = useState("top");
+  const [theme, setTheme] = useState<ThemeChoice>("system");
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
-    const handleScroll = () => {
+    const updateTime = () => {
+      setMelbourneTime(
+        new Intl.DateTimeFormat("en-AU", {
+          timeZone: "Australia/Melbourne",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        }).format(new Date()).toUpperCase(),
+      );
+    };
+
+    const updateScroll = () => {
       const max = document.documentElement.scrollHeight - window.innerHeight;
-      setScrollProgress(max > 0 ? window.scrollY / max : 0);
+      const progress = max > 0 ? window.scrollY / max : 0;
+      document.documentElement.style.setProperty("--scroll", `${window.scrollY}`);
+      document.documentElement.style.setProperty("--progress", `${progress}`);
     };
 
     const sections = Array.from(document.querySelectorAll<HTMLElement>("[data-section]"));
+    const reveals = Array.from(document.querySelectorAll<HTMLElement>("[data-reveal]"));
+
     observerRef.current = new IntersectionObserver(
       (entries) => {
-        const visible = entries
+        const current = entries
           .filter((entry) => entry.isIntersecting)
           .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-        if (visible) setActiveSection((visible.target as HTMLElement).dataset.section ?? "top");
+        if (current) setActiveSection((current.target as HTMLElement).dataset.section ?? "top");
       },
-      { rootMargin: "-30% 0px -55%", threshold: [0, 0.25, 0.6] },
+      { rootMargin: "-35% 0px -55%", threshold: [0, 0.2, 0.6] },
+    );
+
+    const revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      },
+      { rootMargin: "0px 0px -8%", threshold: 0.08 },
     );
 
     sections.forEach((section) => observerRef.current?.observe(section));
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    reveals.forEach((item) => revealObserver.observe(item));
+    updateTime();
+    updateScroll();
 
+    const interval = window.setInterval(updateTime, 30_000);
+    window.addEventListener("scroll", updateScroll, { passive: true });
     return () => {
-      window.removeEventListener("scroll", handleScroll);
+      window.clearInterval(interval);
+      window.removeEventListener("scroll", updateScroll);
       observerRef.current?.disconnect();
+      revealObserver.disconnect();
     };
   }, []);
 
+  useEffect(() => {
+    const stored = window.localStorage.getItem("portfolio-theme") as ThemeChoice | null;
+    const initial = stored === "light" || stored === "dark" || stored === "system"
+      ? stored
+      : "system";
+    const frame = window.requestAnimationFrame(() => setTheme(initial));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const applyTheme = (choice: ThemeChoice) => {
+      const resolved = choice === "system" ? (media.matches ? "dark" : "light") : choice;
+      document.documentElement.dataset.theme = resolved;
+      document.documentElement.style.colorScheme = resolved;
+    };
+
+    applyTheme(theme);
+
+    const handleSystemTheme = () => {
+      if (theme === "system") {
+        applyTheme("system");
+      }
+    };
+
+    media.addEventListener("change", handleSystemTheme);
+    return () => media.removeEventListener("change", handleSystemTheme);
+  }, [theme]);
+
+  const chooseTheme = (choice: ThemeChoice) => {
+    setTheme(choice);
+    window.localStorage.setItem("portfolio-theme", choice);
+  };
+
+  const moveHero = (event: ReactPointerEvent<HTMLElement>) => {
+    if (window.matchMedia("(pointer: coarse), (prefers-reduced-motion: reduce)").matches) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width - 0.5;
+    const y = (event.clientY - rect.top) / rect.height - 0.5;
+    event.currentTarget.style.setProperty("--mx", `${x}`);
+    event.currentTarget.style.setProperty("--my", `${y}`);
+  };
+
   return (
     <>
-      <div
-        className="scroll-progress"
-        style={{ transform: `scaleX(${scrollProgress})` }}
-        aria-hidden="true"
-      />
+      <div className="progress-track" aria-hidden="true"><i /></div>
+      <div className="page-noise" aria-hidden="true" />
 
       <header className="site-header">
-        <a className="wordmark" href="#top" aria-label="Aaryan Narayan, back to top">
-          A/N
-        </a>
-        <nav aria-label="Main navigation">
-          <a className={activeSection === "work" ? "active" : ""} href="#work">
-            Work
-          </a>
-          <a className={activeSection === "about" ? "active" : ""} href="#about">
-            About
-          </a>
-          <a href="mailto:aaryan.narayan@outlook.com">Say hello ↗</a>
-        </nav>
+        <div className="header-actions">
+          <div className="theme-selector" aria-label="Colour theme">
+            {(["light", "system", "dark"] as const).map((choice) => (
+              <button
+                type="button"
+                key={choice}
+                className={theme === choice ? "selected" : ""}
+                aria-pressed={theme === choice}
+                onClick={() => chooseTheme(choice)}
+              >
+                {choice === "system" ? "Auto" : choice}
+              </button>
+            ))}
+          </div>
+          <nav aria-label="Main navigation">
+            <a className={activeSection === "work" ? "active" : ""} href="#work">Work</a>
+            <a className={activeSection === "ai" ? "active" : ""} href="#ai">AI</a>
+            <a className={activeSection === "archive" ? "active" : ""} href="#archive">Archive</a>
+            <a className={activeSection === "about" ? "active" : ""} href="#about">About</a>
+            <a href="mailto:aaryan.narayan@outlook.com">Email ↗</a>
+          </nav>
+        </div>
       </header>
 
       <main>
-        <section className="hero" id="top" data-section="top">
-          <div className="hero-meta">
-            <span>SYD, AU</span>
-            <span>STUDENT / BUILDER</span>
-            <span className="availability"><i /> CURRENTLY BUILDING</span>
-          </div>
-
+        <section
+          className="hero"
+          id="top"
+          data-section="top"
+          onPointerMove={moveHero}
+        >
+          <div className="hero-grid" aria-hidden="true" />
           <div className="hero-copy">
-            <p className="eyebrow">Hi, I’m Aaryan.</p>
+            <div className="hero-meta">
+              <span>MELBOURNE / {melbourneTime} LOCAL TIME</span>
+            </div>
             <h1>
               I spend a lot of time
               <span>making things.</span>
             </h1>
-            <p className="hero-intro">
-              I’m a student in Australia interested in software, hardware and
-              everything that happens between an idea and a useful finished thing.
-            </p>
+            <p>I build product software, connected hardware and AI-assisted development systems.</p>
+            <div className="hero-links">
+              <a href="#work">Selected work <span>↓</span></a>
+              <a href="https://github.com/Aaryan-N" target="_blank" rel="noreferrer">
+                GitHub <span>↗</span>
+              </a>
+            </div>
           </div>
-
-          <div className="hero-bottom">
-            <a className="scroll-cue" href="#work">
-              <span>SCROLL TO THE BUILDS</span>
-              <b>↓</b>
-            </a>
-            <p>
-              This is a small, changing collection of what I’ve been learning and
-              working on lately.
-            </p>
-          </div>
+          <HeroMachine />
+          <div className="hero-coordinate coord-a">37.8136° S</div>
+          <div className="hero-coordinate coord-b">144.9631° E</div>
         </section>
 
         <div className="ticker" aria-hidden="true">
-          <div className="ticker-track">
-            <span>CURRENTLY: VELO + CRAMWISE</span><b>·</b>
-            <span>RECENTLY: PRODUCT SYSTEMS + PCBS</span><b>·</b>
-            <span>BASED IN AUSTRALIA</span><b>·</b>
-            <span>CURRENTLY: VELO + CRAMWISE</span><b>·</b>
-            <span>RECENTLY: PRODUCT SYSTEMS + PCBS</span><b>·</b>
-            <span>BASED IN AUSTRALIA</span><b>·</b>
+          <div>
+            <span>VELO</span><b>+</b><span>CRAMWISE</span><b>+</b><span>FIRA</span><b>+</b>
+            <span>NFC CARD</span><b>+</b><span>USB HUB</span><b>+</b><span>MELBOURNE</span><b>+</b>
+            <span>VELO</span><b>+</b><span>CRAMWISE</span><b>+</b><span>FIRA</span><b>+</b>
+            <span>NFC CARD</span><b>+</b><span>USB HUB</span><b>+</b><span>MELBOURNE</span><b>+</b>
           </div>
         </div>
 
         <section className="work-section" id="work" data-section="work">
-          <div className="section-heading">
-            <p>SELECTED WORK / 2026</p>
-            <h2>A few current projects.</h2>
-            <span>The things taking up most of my tabs at the moment.</span>
+          <div className="section-intro" data-reveal>
+            <span>01 / CURRENT</span>
+            <h2>Current projects.</h2>
           </div>
 
-          <div className="project-list">
-            {projects.map((project) => (
-              <article className="project" key={project.title}>
-                <div className="project-index">
-                  <span>{project.number}</span>
-                  <span>{project.status}</span>
-                </div>
+          <div className="featured-list">
+            {featured.map((project) => (
+              <article className="featured-project" key={project.title} data-reveal>
                 <div className="project-copy">
-                  <p>{project.kicker}</p>
-                  <h3>{project.title}</h3>
-                  <div className="project-description">
-                    <p>{project.description}</p>
-                    <aside>{project.note}</aside>
+                  <div className="project-meta">
+                    <span>{project.index}</span>
+                    <span>{project.year}</span>
                   </div>
-                  <ul aria-label={`${project.title} technologies and themes`}>
-                    {project.tags.map((tag) => <li key={tag}>{tag}</li>)}
-                  </ul>
+                  <p>{project.label}</p>
+                  <h3>{project.title}</h3>
+                  <div className="project-body">
+                    <p>{project.copy}</p>
+                    <ul aria-label={`${project.title} technologies`}>
+                      {project.tags.map((tag) => <li key={tag}>{tag}</li>)}
+                    </ul>
+                  </div>
                 </div>
-                <ProjectVisual kind={project.kind} />
+                <ProjectStage kind={project.kind} />
               </article>
             ))}
           </div>
         </section>
 
-        <section className="builds-section" data-section="work">
-          <div className="section-heading compact">
-            <p>OFF-SCREEN EXPERIMENTS</p>
-            <h2>I also make objects.</h2>
+        <section className="ai-section" id="ai" data-section="ai">
+          <div className="ai-intro">
+            <span>02 / AI</span>
+            <h2>AI as part of the engineering system.</h2>
+            <p>
+              My focus is on coordinating agents, working across AI-enabled
+              development environments and building reviewable workflows around
+              model output.
+            </p>
           </div>
-          <div className="small-build-grid">
-            {smallBuilds.map((build, index) => (
+
+          <div className="ai-layout">
+            <div
+              className="model-visual"
+              onPointerMove={(event) => setTilt(event, 8)}
+              onPointerLeave={resetTilt}
+              aria-label="Multi-agent orchestration workflow"
+            >
+              <div className="model-grid" />
+              <div className="token-stream">
+                {"PLAN DELEGATE BUILD REVIEW VERIFY".split("").map((letter, index) => (
+                  <i key={`${letter}-${index}`}>{letter === " " ? "·" : letter}</i>
+                ))}
+              </div>
+              <div className="model-layer layer-input"><span>01</span><b>PLAN</b><small>define scope</small></div>
+              <div className="model-layer layer-embed"><span>02</span><b>DELEGATE</b><small>route tasks</small></div>
+              <div className="model-layer layer-attn"><span>03</span><b>EXECUTE</b><small>parallel work</small></div>
+              <div className="model-layer layer-output"><span>04</span><b>VERIFY</b><small>review &amp; test</small></div>
+              <div className="model-orbit"><i /><i /><i /></div>
+            </div>
+
+            <div className="ai-cases">
+              {aiWork.map((item) => (
+                <article className="ai-case" key={item.title}>
+                    <div className="ai-case-meta">
+                      <span>{item.status}</span>
+                      <span>AI WORKFLOW</span>
+                    </div>
+                    <h3>{item.title}</h3>
+                    <p>{item.copy}</p>
+                    <small>{item.detail}</small>
+                    <ul aria-label={`${item.title} themes`}>
+                      {item.tags.map((tag) => <li key={tag}>{tag}</li>)}
+                    </ul>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="archive-section" id="archive" data-section="archive">
+          <div className="archive-head" data-reveal>
+            <span>03 / ARCHIVE</span>
+            <h2>Earlier work.</h2>
+            <p>Selected projects that shaped how I work across software and hardware.</p>
+          </div>
+
+          <div className="archive-space">
+            <div className="archive-axis" aria-hidden="true" />
+            {archive.map((item, index) => (
               <a
-                className="small-build"
-                href={build.href}
+                className="archive-card"
+                href={item.href}
                 target="_blank"
                 rel="noreferrer"
-                key={build.title}
+                key={item.title}
+                style={{ "--i": index } as CSSProperties}
+                onPointerMove={(event) => setTilt(event, 12)}
+                onPointerLeave={resetTilt}
+                data-reveal
               >
-                <div className="build-image-wrap">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={build.image} alt={`${build.title} project`} />
-                  <span>OPEN REPO ↗</span>
+                <div className="card-shine" />
+                {item.image ? (
+                  <div className="archive-image">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={item.image} alt="" />
+                  </div>
+                ) : (
+                  <div className="archive-schematic" aria-hidden="true">
+                    <i /><i /><i /><i /><b>{item.index}</b>
+                  </div>
+                )}
+                <div className="archive-meta">
+                  <span>{item.index}</span>
+                  <span>{item.type}</span>
+                  <time>{item.year}</time>
                 </div>
-                <div className="build-title">
-                  <span>0{index + 3}</span>
-                  <h3>{build.title}</h3>
-                  <time>{build.year}</time>
-                </div>
-                <p>{build.text}</p>
+                <h3>{item.title}</h3>
+                <p>{item.copy}</p>
+                <ul aria-label={`${item.title} technologies`}>
+                  {item.tags.map((tag) => <li key={tag}>{tag}</li>)}
+                </ul>
+                <span className="archive-open">Open repo ↗</span>
               </a>
             ))}
           </div>
         </section>
 
         <section className="about-section" id="about" data-section="about">
-          <div className="about-label">
-            <span>ABOUT / THE SHORT VERSION</span>
+          <div className="about-head">
+            <span>04 / ABOUT</span>
+            <h2>Based in Melbourne. Working across software, hardware and applied AI.</h2>
           </div>
-          <div className="about-copy">
-            <h2>
-              Still figuring it out.
-              <br />
-              Building as I go.
-            </h2>
-            <div className="about-columns">
+          <div className="about-grid">
+            <div className="about-copy">
               <p>
-                I’m Aaryan, a student in Australia who likes working across the
-                whole shape of a problem: the interface, the system underneath it,
-                and occasionally the circuit board it runs on.
+                I’m a student and product builder interested in systems that
+                cross boundaries: interfaces connected to infrastructure,
+                software connected to physical products, and AI workflows
+                connected to real engineering practice.
               </p>
               <p>
-                I’m interested in robotics, useful products and the messy middle
-                where an idea has to become something a real person can actually
-                use. This page is less a trophy cabinet and more a live workbench.
+                My current focus is Velo, Cramwise and agent-assisted software
+                development. I enjoy owning the full path from an early idea to
+                the implementation details that make it dependable.
               </p>
             </div>
-          </div>
-          <div className="about-notes">
-            <p>THINGS I KEEP COMING BACK TO</p>
-            <ul>
-              <li><span>01</span> Products that explain themselves</li>
-              <li><span>02</span> Hardware you can hold</li>
-              <li><span>03</span> Making complex systems feel calm</li>
-              <li><span>04</span> Learning just past my comfort zone</li>
-            </ul>
+            <div className="about-ledger">
+              <div><span>BASE</span><p>Melbourne, Australia</p></div>
+              <div><span>FOCUS</span><p>Product systems, agent workflows, connected hardware</p></div>
+              <div><span>WORKING WITH</span><p>TypeScript, Next.js, Supabase, NFC and PCB design</p></div>
+              <div><span>CURRENTLY</span><p>Building Velo and Cramwise</p></div>
+            </div>
           </div>
         </section>
       </main>
 
       <footer>
+        <span>05 / CONTACT</span>
+        <p>Email is easiest.</p>
+        <a href="mailto:aaryan.narayan@outlook.com">
+          aaryan.narayan@outlook.com <i>↗</i>
+        </a>
         <div>
-          <p>If you’d like to talk about any of this</p>
-          <a href="mailto:aaryan.narayan@outlook.com">Say hello <span>↗</span></a>
-        </div>
-        <div className="footer-meta">
-          <span>© 2026 AARYAN NARAYAN</span>
-          <a href="https://github.com/Aaryan-N" target="_blank" rel="noreferrer">
-            GITHUB ↗
-          </a>
-          <a href="#top">BACK TO TOP ↑</a>
+          <span>© 2026 Aaryan Narayan</span>
+          <a href="https://github.com/Aaryan-N" target="_blank" rel="noreferrer">GitHub ↗</a>
+          <a href="#top">Top ↑</a>
         </div>
       </footer>
     </>
